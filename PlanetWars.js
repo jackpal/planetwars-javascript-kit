@@ -35,10 +35,7 @@ function Universe(planets, fleets) {
     for (i = 0; i < planetsLength; i++) {
         planet = planets[i];
         owner = planet.owner;
-        if (owner < 0 || owner >= planetsByOwner.length) {
-            throw "Unknown planet owner " + owner;
-        }
-        planetsByOwner[owner].push(planet);
+        planetsByOwner[owner < 0 || owner > 1 ? 2 : owner].push(planet);
     }
 
     var myFleets = [];
@@ -49,10 +46,7 @@ function Universe(planets, fleets) {
     for (i = 0; i < fleetsLength; i++) {
         fleet = fleets[i];
         owner = fleet.owner;
-        if (owner < 1 || owner > 2) {
-            throw "Unknown fleet owner " + owner;
-        }
-        fleetsByOwner[owner - 1].push(fleet);
+        fleetsByOwner[owner == 1 ? 0 : 1].push(fleet);
     }
 
     return {

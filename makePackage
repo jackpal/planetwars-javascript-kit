@@ -1,0 +1,9 @@
+#!/bin/sh
+# Make a release packag of the JavaScript Starter Package
+
+rm -rf staging
+mkdir -p staging/javascript_starter_package
+cp -r MyBot.js PlanetWars.js README.txt README-JavaScript.txt example_bots maps tools staging/javascript_starter_package
+cd staging
+zip -r javascript_starter_package.zip javascript_starter_package
+rm -rf javascript_starter_package
