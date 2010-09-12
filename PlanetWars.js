@@ -63,8 +63,8 @@ function Universe(planets, fleets) {
         enemyFleets : enemyFleets,
 
         IssueOrder : function IssueOrder(source, dest, ships) {
-            process.stdout.write('' + Math.floor(source) + ' '
-                    + Math.floor(dest) + ' ' + Math.floor(ships) + '\n');
+            process.stdout.write('' + Math.floor(source) + ' ' +
+                    Math.floor(dest) + ' ' + Math.floor(ships) + '\n');
         }
     };
 }
@@ -96,7 +96,6 @@ function parseInput(turnInput, turnFn) {
             break;
         default:
             throw "Unknown command token: " + line;
-            break;
         }
     }
     universe = Universe(planets, fleets);
