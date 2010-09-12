@@ -22,17 +22,18 @@ function DoTurn(pw) {
     // (2) Find my strongest planet.
     var source = -1;
     var score;
-    var source_score = -999999.0;
+    var sourceScore = -999999.0;
     var sourceShips = 0;
     var myPlanets = pw.myPlanets;
     var p, pi, plen;
     var dest, destScore, notMyPlanets;
+    var numShips;
     plen = myPlanets.length;
     for (pi = 0; pi < plen; pi++) {
         p = myPlanets[pi];
         score = p.ships;
-        if (score > source_score ) {
-            source_score = score;
+        if (score > sourceScore ) {
+            sourceScore = score;
             source = p.id;
             sourceShips = p.ships;
         }
@@ -55,8 +56,8 @@ function DoTurn(pw) {
     // (4) Send half the ships from my strongest planet to the weakest
     // planet that I do not own.
     if ( source >= 0 && dest >= 0 ) {
-        num_ships = Math.floor(sourceShips / 2);
-        pw.IssueOrder(source, dest, num_ships);
+        numShips = Math.floor(sourceShips / 2);
+        pw.IssueOrder(source, dest, numShips);
     }
 }
 
