@@ -1,13 +1,26 @@
 var sys = require('sys');
 
 function Planet(id, x, y, owner, ships, growth) {
-    return {id:id, x:x, y:y, owner:owner, ships: ships, growth: growth};
+    return {
+        id : id,
+        x : x,
+        y : y,
+        owner : owner,
+        ships : ships,
+        growth : growth
+    };
 }
 
 function Fleet(id, owner, ships, source, dest, totalLength, remaining) {
-    return {id:id, owner : owner,
-        ships: ships, source: source, dest: dest,
-        totalLength: totalLength, remaining: remaining};
+    return {
+        id : id,
+        owner : owner,
+        ships : ships,
+        source : source,
+        dest : dest,
+        totalLength : totalLength,
+        remaining : remaining
+    };
 }
 
 function Universe(planets, fleets) {
@@ -17,7 +30,7 @@ function Universe(planets, fleets) {
     var enemyPlanets = [];
     var neutralPlanets = [];
     var planet;
-    var planetsByOwner = [neutralPlanets, myPlanets, enemyPlanets];
+    var planetsByOwner = [ neutralPlanets, myPlanets, enemyPlanets ];
     var owner;
     for (i = 0; i < planetsLength; i++) {
         planet = planets[i];
@@ -31,7 +44,7 @@ function Universe(planets, fleets) {
     var myFleets = [];
     var enemyFleets = [];
     var fleetsLength = fleets.length;
-    var fleetsByOwner = [myFleets, enemyFleets];
+    var fleetsByOwner = [ myFleets, enemyFleets ];
     var fleet;
     for (i = 0; i < fleetsLength; i++) {
         fleet = fleets[i];
@@ -39,23 +52,23 @@ function Universe(planets, fleets) {
         if (owner < 1 || owner > 2) {
             throw "Unknown fleet owner " + owner;
         }
-        fleetsByOwner[owner-1].push(fleet);
+        fleetsByOwner[owner - 1].push(fleet);
     }
 
     return {
-        planets: planets,
-        neutralPlanets:neutralPlanets,
-        myPlanets: myPlanets,
-        enemyPlanets: enemyPlanets,
-        notMyPlanets: neutralPlanets.concat(enemyPlanets),
-        notEnemyPlanets: neutralPlanets.concat(myPlanets),
-        notNeutralPlanets: myPlanets.concat(enemyPlanets),
+        planets : planets,
+        neutralPlanets : neutralPlanets,
+        myPlanets : myPlanets,
+        enemyPlanets : enemyPlanets,
+        notMyPlanets : neutralPlanets.concat(enemyPlanets),
+        notEnemyPlanets : neutralPlanets.concat(myPlanets),
+        notNeutralPlanets : myPlanets.concat(enemyPlanets),
 
-        fleets: fleets,
-        myFleets: myFleets,
-        enemyFleets: enemyFleets,
+        fleets : fleets,
+        myFleets : myFleets,
+        enemyFleets : enemyFleets,
 
-        IssueOrder: function IssueOrder(source, dest, ships) {
+        IssueOrder : function IssueOrder(source, dest, ships) {
             process.stdout.write('' + Math.floor(source) + ' '
                     + Math.floor(dest) + ' ' + Math.floor(ships) + '\n');
         }
@@ -80,15 +93,16 @@ function parseInput(turnInput, turnFn) {
         cmd = toks[0];
         switch (cmd) {
         case 'P':
-            planets.push(Planet(planets.length,
-                    toks[1], toks[2], toks[3], toks[4], toks[5]));
+            planets.push(Planet(planets.length, toks[1], toks[2], toks[3],
+                    toks[4], toks[5]));
             break;
         case 'F':
-            fleets.push(Fleet(fleets.length,
-                    toks[1], toks[2], toks[3], toks[4], toks[5], toks[6]));
+            fleets.push(Fleet(fleets.length, toks[1], toks[2], toks[3],
+                    toks[4], toks[5], toks[6]));
             break;
         default:
             throw "Unknown command token: " + line;
+            break;
         }
     }
     universe = Universe(planets, fleets);
@@ -98,10 +112,9 @@ function parseInput(turnInput, turnFn) {
 
 exports.Play = function Play(turnFn) {
     var stdin = process.openStdin();
-    var stdout = process.stdout;
     var buffer = '';
     sys.debug('Play()');
-    stdin.on('data', function (chunk) {
+    stdin.on('data', function(chunk) {
         buffer += chunk;
         var endOfTurn = buffer.indexOf('\ngo\n');
         if (endOfTurn >= 0) {
@@ -111,8 +124,8 @@ exports.Play = function Play(turnFn) {
         }
     });
 
-    stdin.on('end', function () {
-      sys.debug('end of stdin, exiting');
-      sys.exit();
+    stdin.on('end', function() {
+        sys.debug('end of stdin, exiting');
+        sys.exit();
     });
 };

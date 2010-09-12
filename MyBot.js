@@ -18,6 +18,7 @@ function DoTurn(pw) {
     if ( pw.myFleets.length >= 1 ) {
         return;
     }
+
     // (2) Find my strongest planet.
     var source = -1;
     var score;
@@ -50,6 +51,7 @@ function DoTurn(pw) {
             dest = p.id;
         }
     }
+
     // (4) Send half the ships from my strongest planet to the weakest
     // planet that I do not own.
     if ( source >= 0 && dest >= 0 ) {
