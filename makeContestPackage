@@ -1,0 +1,9 @@
+#!/bin/sh
+# Make a contest package suitable for uploading to the contest.
+
+rm -rf staging
+mkdir -p staging/contest_package
+cp -r MyBot.js PlanetWars.js staging/contest_package
+cd staging
+zip -r contest_package.zip contest_package
+rm -rf contest_package
