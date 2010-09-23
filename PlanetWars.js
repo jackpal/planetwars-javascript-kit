@@ -94,6 +94,9 @@ function parseInput(turnInput, turnFn) {
             fleets.push(Fleet(fleets.length, toks[1], toks[2], toks[3],
                     toks[4], toks[5], toks[6]));
             break;
+        case '':
+            // Empty line.
+            break;
         default:
             throw "Unknown command token: " + line;
         }
