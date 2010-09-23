@@ -39,7 +39,11 @@ function Planet(id, x, y, owner, ships, growth) {
         y : y,
         owner : owner,
         ships : ships,
-        growth : growth
+        growth : growth,
+        fmt: function() {
+            return ['P', this.x, this.y, this.owner, this.ships,
+                    this.growth].join(' ');
+        }
     };
 }
 
@@ -51,11 +55,15 @@ function Fleet(id, owner, ships, source, dest, totalLength, remaining) {
         source : source,
         dest : dest,
         totalLength : totalLength,
-        remaining : remaining
+        remaining : remaining,
+        fmt: function() {
+            return ['F', this.owner, this.ships, this.source, this.dest,
+                    this.totalLength, this.remaining].join(' ');
+        }
     };
 }
 
-function readMap(mapName) {
+function readState(mapName) {
     var mapData = fs.readFileSync(mapName, 'utf8');
     var lines = mapData.split('\n');
     var linesLength = lines.length;
@@ -91,25 +99,34 @@ function readMap(mapName) {
     return {planets: planets, fleets: fleets};
 }
 
-function playGame(rawArgs){
+function formatState(state) {
+    var acc = '';
+    state.planets.forEach(function(v, i, a) {
+        acc += v.fmt() + '\n';});
+    state.fleets.forEach(function(v, i, a) {
+        acc += v.fmt() + '\n';});
+    return acc;
+}
+
+function startClockwork(state, args, players, callback) {
+    var state = formatState(state);
+    sys.puts(state);
+}
+
+function startGame(rawArgs){
     var args = parseArgs(rawArgs);
-    var state = readMap(args.map);
+    var state = readState(args.map);
     if (state.fleets.length > 0) {
         p("Didn't expect to find fleets in a starter map.");
     }
-    var players = args.players.state(function(val, index, array) {
+    var players = args.players.map(function(val, index, array) {
         return {cmdLine: val, child: child_process.spawn(val[0], val.slice(1))};
-    });;
-
-    p(players);
+    });
+    state.turn = 0;
+    startClockwork(state, args, players,
+            function(winner) {
+                p(['Clockwork result', winner]);
+            });
 }
 
-function main() {
-    try {
-        playGame(process.argv.slice(2));
-    } catch (e) {
-        l("Uncaught exception: " + sys.inspect(e));
-    }
-}
-
-main();
+startGame(process.argv.slice(2));
