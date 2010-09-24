@@ -347,7 +347,7 @@ function startGame(rawArgs){
                 doArrival(state);
                 state.turn += 1;
                 state.playersWhoHaveGivenOrders = 0;
-                if (state.turn < args.maxTurns) {
+                if (state.turn <= args.maxTurns) {
                     sendStateToPlayers(state, players);
                 } else {
                     doEndgame(state, players);
