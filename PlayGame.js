@@ -369,9 +369,7 @@ function printCurrentGameState(state) {
             s += v.owner + '.' + v.ships;
         });
     state.fleets.forEach(function(v,i,a) {
-	    if (i > 0) {
-		s += ',';
-	    }
+	    s += ',';
 	    s += v.owner + '.' + v.ships + '.' + v.source + '.' + v.dest + '.' + v.totalLength + '.' + v.remaining;
 	});
     s += ':';
