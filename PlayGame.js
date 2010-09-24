@@ -171,8 +171,9 @@ function startPlayer(state, id, commandLine, responseCallback) {
         var newLinesLen = newLines.length;
         curLine = newLines[newLinesLen-1];
         if ( newLinesLen > 1) {
-            lines = lines.concat(newLines.slice(0,newLinesLen-1));
-	    lines.forEach(function(v, i, a) {
+            var newWholeLines = newLines.slice(0, newLinesLen-1);
+	    lines = lines.concat(newWholeLines);
+	    newWholeLines.forEach(function(v, i, a) {
 		    state.log.write('player' + player.id + ' > engine: ' + v + '\n');
 		});
             var linesLength = lines.length;
@@ -251,9 +252,9 @@ function doAdvancement(state) {
 function battle(forces, oldOwner) {
     var a2 = forces.map(function(v, i, a) {return [v, i];});
     a2.sort(function(a, b) { return a[0]-b[0]; });
-    var strongestIndex = a2[0][0];
-    var strongestValue = a2[1][1];
-    var secondStrongestValue = a2[1][1];
+    var strongestIndex = a2[2][1];
+    var strongestValue = a2[2][0];
+    var secondStrongestValue = a2[1][0];
     var newValue = strongestValue - secondStrongestValue;
     var winner = strongestIndex;
     if (newValue == 0) {
@@ -277,16 +278,14 @@ function doArrival(state) {
                 forces[dest] = destForces = [0, 0, 0];
                 battleIndexes.push(dest);
             }
-            forces[v.owner] += v.ships;
+            destForces[v.owner] += v.ships;
         }
     });
     state.fleets = newFleets;
     battleIndexes.forEach(function(i, ai, a) {
         var v = forces[i];
         var planet = state.planets[i];
-        if (planet.owner) {
-            v[planet.owner] += planet.ships;
-        }
+	v[planet.owner] += planet.ships;
         var result = battle(v, planet.owner);
         planet.owner = result[0];
         planet.ships = result[1];
@@ -294,9 +293,6 @@ function doArrival(state) {
 }
 
 function doEndgame(state, players) {
-    l(state);
-    l(players);
-
     players.forEach(function(v,i,a) {
         v.child.stdin.end();
     });
