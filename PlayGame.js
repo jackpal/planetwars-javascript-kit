@@ -6,12 +6,16 @@ var fs = require('fs');
 var sys = require('sys');
 var async = require('./async');
 
-function p(o) {
-    sys.puts(sys.inspect(o));
+function error(o) {
+    sys.error(o);
 }
 
-function l(o) {
-    sys.log(sys.inspect(o));
+function debug(o) {
+    sys.debug(o);
+}
+
+function debugi(o) {
+    sys.debug(sys.inspect(o));
 }
 
 function usage(str) {
@@ -324,31 +328,60 @@ function doEndgame(state, players) {
     var p1Alive = players[0].isAlive();
     var p2Alive = players[1].isAlive();
     if (! p1Alive && ! p2Alive) {
-        l("Draw");
+        error("Draw");
     } else if (p1Alive && ! p2Alive) {
-        l("Player 1 wins");
+        error("Player 1 wins");
     } else if (p2Alive && ! p1Alive) {
-        l("Player 2 wins");
+        error("Player 2 wins");
     } else {
 	var ships = countShips(state);
-        l(ships);
+        debugi(ships);
         if (ships[1] > ships[2]) {
-            l("Player 1 wins");
+            error("Player 1 wins");
         } else if (ships[1] == ships[2]) {
-            l("Draw");
+            error("Draw");
         } else {
-            l("Player 2 wins");
+            error("Player 2 wins");
         }
     }
+    sys.print('\n');
     state.log.end();
+}
+
+function printStartingGameState(state) {
+    var s = '';
+    state.planets.forEach(function(v,i,a) {
+	    if (i > 0) {
+		s += ':';
+	    }
+	    s += numberToJavaString(v.x) + ',' + numberToJavaString(v.y) + ',' + v.owner + ',' + v.ships + ',' + v.growth;
+	});
+    s += '|';
+    sys.print(s);
+}
+
+function printCurrentGameState(state) {
+    var s = '';
+    state.planets.forEach(function(v,i,a) {
+            if (i > 0) {
+                s += ',';
+            }
+            s += v.owner + '.' + v.ships;
+        });
+    state.fleets.forEach(function(v,i,a) {
+	    if (i > 0) {
+		s += ',';
+	    }
+	    s += v.owner + '.' + v.ships + '.' + v.source + '.' + v.dest + '.' + v.totalLength + '.' + v.remaining;
+	});
+    s += ':';
+    sys.print(s);
 }
 
 function startGame(rawArgs){
     var args = parseArgs(rawArgs);
     var state = readState(args.map);
-    if (state.fleets.length > 0) {
-        p("Didn't expect to find fleets in a starter map.");
-    }
+    printStartingGameState(state);
     state.log = fs.createWriteStream(args.logFile);
     state.log.write('initializing\n');
     var players = args.players.map(function(val, index, array) {
@@ -358,6 +391,7 @@ function startGame(rawArgs){
 		doOrders(state, players);
                 doAdvancement(state);
                 doArrival(state);
+		printCurrentGameState(state);
 		var shipCount = countShips(state);
 		var bothPlayersAlive = shipCount[1] > 0 && shipCount[2] > 0;
                 state.turn += 1;
