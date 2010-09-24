@@ -27,7 +27,7 @@ function parseArgs(args) {
         process.exit(1);
     }
     return {map: args[0], turnTime: args[1],
-        maxTurns: args[2], logfile: args[3],
+        maxTurns: args[2], logFile: args[3],
         players: [args[4].split(' '), args[5].split(' ')]
     };
 }
@@ -43,6 +43,14 @@ function mapId(pid, id) {
     return idMap[pid-1][id];
 }
 
+function numberToJavaString(n) {
+    if (n == 0) {
+	return '0.0';
+    } else {
+	return ''+n;
+    }
+}
+
 function Planet(id, x, y, owner, ships, growth) {
     return {
         id : id,
@@ -52,7 +60,7 @@ function Planet(id, x, y, owner, ships, growth) {
         ships : ships,
         growth : growth,
         fmt: function(pid) {
-            return ['P', this.x, this.y, mapId(pid, this.owner), this.ships,
+            return ['P', numberToJavaString(this.x), numberToJavaString(this.y), mapId(pid, this.owner), this.ships,
                     this.growth].join(' ');
         }
     };
@@ -141,11 +149,12 @@ function formatState(state, playerId) {
 function sendStateToPlayers(state, players) {
     players.forEach(function(v, i, a) {
         var gameReport = formatState(state, v.id) + 'go\n';
+	state.log.write('engine > player' + v.id + ': ' + gameReport + '\n');
         v.child.stdin.write(gameReport);
     });
 }
 
-function startPlayer(id, commandLine, responseCallback) {
+function startPlayer(state, id, commandLine, responseCallback) {
     var player = {
             cmdLine: commandLine,
             id: id,
@@ -163,6 +172,9 @@ function startPlayer(id, commandLine, responseCallback) {
         curLine = newLines[newLinesLen-1];
         if ( newLinesLen > 1) {
             lines = lines.concat(newLines.slice(0,newLinesLen-1));
+	    lines.forEach(function(v, i, a) {
+		    state.log.write('player' + player.id + ' > engine: ' + v + '\n');
+		});
             var linesLength = lines.length;
             if (lines[linesLength-1] === 'go') {
                 var lines2 = lines.slice(0, linesLength-1);
@@ -313,6 +325,7 @@ function doEndgame(state, players) {
             l("Player 2 wins");
         }
     }
+    state.log.end();
 }
 
 function startGame(rawArgs){
@@ -321,8 +334,10 @@ function startGame(rawArgs){
     if (state.fleets.length > 0) {
         p("Didn't expect to find fleets in a starter map.");
     }
+    state.log = fs.createWriteStream(args.logFile);
+    state.log.write('initializing\n');
     var players = args.players.map(function(val, index, array) {
-        return startPlayer(index + 1, val, function(p, lines) {
+        return startPlayer(state, index + 1, val, function(p, lines) {
             if (p.isAlive()) {
                 var err = doOrders(state, p, lines);
                 if (err) {
