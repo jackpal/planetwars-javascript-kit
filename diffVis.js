@@ -1,4 +1,5 @@
 // Compare two game visualation files
+// TODO: sort fleets to avoid false differences.
 var fs = require('fs');
 var argv = process.argv.slice(2);
 

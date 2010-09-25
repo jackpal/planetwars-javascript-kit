@@ -150,9 +150,10 @@ function formatState(state, playerId) {
     return acc;
 }
 
-function sendStateToPlayers(state, players) {
+function sendStateToPlayers(state, players, args) {
     players.forEach(function(v, i, a) {
         var gameReport = formatState(state, v.id) + 'go\n';
+        v.timeoutId = setTimeout(v.timeoutFn, args.turnTime);
 	state.log.write('engine > player' + v.id + ': ' + gameReport + '\n');
         v.child.stdin.write(gameReport);
     });
@@ -164,9 +165,18 @@ function startPlayer(state, id, commandLine, responseCallback) {
             id: id,
             child: child_process.spawn(commandLine[0], commandLine.slice(1)),
             err: '', // stderr from client
-            state: 'alive', // alive, dead
-            isAlive: function() { return this.state === 'alive'; }
-            };
+            state: 'alive', // alive, dead, timeout
+            isAlive: function() { return this.state === 'alive'; },
+            kill: function(reason) {
+                    this.state = reason;
+                    error('Player ' + this.id + ' killed. Reason: ' + reason);
+                    this.end();
+            },
+            end: function() {
+                    this.child.stdin.end();
+                    this.child.kill();
+            }
+        };
     var lines = [];
     var curLine = '';
     player.child.stdout.on('data', function(data) {
@@ -179,6 +189,10 @@ function startPlayer(state, id, commandLine, responseCallback) {
 	    lines = lines.concat(newWholeLines);
             var linesLength = lines.length;
             if (lines[linesLength-1] === 'go') {
+                if (player.timeoutId) {
+                    clearTimeout(player.timeoutId);
+                    player.timeoutId = undefined;
+                }
 		player.orders = lines;
                 lines = [];
                 responseCallback(player);
@@ -188,6 +202,10 @@ function startPlayer(state, id, commandLine, responseCallback) {
     player.child.stderr.on('data', function(data) {
         player.err += data;
     });
+    player.timeoutFn = function() {
+        player.kill('timeout');
+        responseCallback(player);
+    }
     return player;
 }
 
@@ -249,8 +267,7 @@ function doOrders(state, players) {
 	    if (p.isAlive()) {
 		var err = doPlayerOrders(state, p);
 		if (err) {
-		    l("Killing player: " + err);
-		    p.state = 'dead';
+                    p.kill('badOrder');
 		}
 	    }
 	});
@@ -323,7 +340,7 @@ function countShips(state) {
 
 function doEndgame(state, players) {
     players.forEach(function(v,i,a) {
-        v.child.stdin.end();
+            v.end();
     });
     var p1Alive = players[0].isAlive();
     var p2Alive = players[1].isAlive();
@@ -391,11 +408,12 @@ function startGame(rawArgs){
                 doArrival(state);
 		printCurrentGameState(state);
 		var shipCount = countShips(state);
-		var bothPlayersAlive = shipCount[1] > 0 && shipCount[2] > 0;
+		var bothPlayersAlive = players[0].isAlive() && players[1].isAlive() &&
+                    shipCount[1] > 0 && shipCount[2] > 0;
                 state.turn += 1;
                 state.playersWhoHaveGivenOrders = 0;
                 if (state.turn <= args.maxTurns && bothPlayersAlive) {
-                    sendStateToPlayers(state, players);
+                    sendStateToPlayers(state, players, args);
                 } else {
                     doEndgame(state, players);
                 }
@@ -404,7 +422,7 @@ function startGame(rawArgs){
     });
     state.turn = 0;
     state.playersWhoHaveGivenOrders = 0;
-    sendStateToPlayers(state, players);
+    sendStateToPlayers(state, players, args);
 }
 
 startGame(process.argv.slice(2));
