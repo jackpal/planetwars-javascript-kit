@@ -1,5 +1,5 @@
-// A JavaScript version of the game player.
-//
+//A JavaScript version of the game player.
+
 
 var child_process = require('child_process');
 var fs = require('fs');
@@ -49,9 +49,9 @@ function mapId(pid, id) {
 
 function numberToJavaString(n) {
     if (n == 0) {
-	return '0.0';
+        return '0.0';
     } else {
-	return ''+n;
+        return ''+n;
     }
 }
 
@@ -64,9 +64,9 @@ function Planet(id, x, y, owner, ships, growth) {
         ships : ships,
         growth : growth,
         fmt: function(pid) {
-            return ['P', numberToJavaString(this.x), numberToJavaString(this.y), mapId(pid, this.owner), this.ships,
-                    this.growth].join(' ');
-        }
+        return ['P', numberToJavaString(this.x), numberToJavaString(this.y), mapId(pid, this.owner), this.ships,
+                this.growth].join(' ');
+    }
     };
 }
 
@@ -86,10 +86,10 @@ function Fleet(id, owner, ships, source, dest, totalLength, remaining) {
         totalLength : totalLength,
         remaining : remaining,
         fmt: function(pid) {
-            return ['F', mapId(pid, this.owner),
-                    this.ships, this.source, this.dest,
-                    this.totalLength, this.remaining].join(' ');
-        }
+        return ['F', mapId(pid, this.owner),
+                this.ships, this.source, this.dest,
+                this.totalLength, this.remaining].join(' ');
+    }
     };
 }
 
@@ -154,7 +154,7 @@ function sendStateToPlayers(state, players, args) {
     players.forEach(function(v, i, a) {
         var gameReport = formatState(state, v.id) + 'go\n';
         v.timeoutId = setTimeout(v.timeoutFn, args.turnTime);
-	state.log.write('engine > player' + v.id + ': ' + gameReport + '\n');
+        state.log.write('engine > player' + v.id + ': ' + gameReport + '\n');
         v.child.stdin.write(gameReport);
     });
 }
@@ -168,15 +168,15 @@ function startPlayer(state, id, commandLine, responseCallback) {
             state: 'alive', // alive, dead, timeout
             isAlive: function() { return this.state === 'alive'; },
             kill: function(reason) {
-                    this.state = reason;
-                    error('Player ' + this.id + ' killed. Reason: ' + reason);
-                    this.end();
+                this.state = reason;
+                error('Player ' + this.id + ' killed. Reason: ' + reason);
+                this.end();
             },
             end: function() {
-                    this.child.stdin.end();
-                    this.child.kill();
+                this.child.stdin.end();
+                this.child.kill();
             }
-        };
+    };
     var lines = [];
     var curLine = '';
     player.child.stdout.on('data', function(data) {
@@ -186,14 +186,14 @@ function startPlayer(state, id, commandLine, responseCallback) {
         curLine = newLines[newLinesLen-1];
         if ( newLinesLen > 1) {
             var newWholeLines = newLines.slice(0, newLinesLen-1);
-	    lines = lines.concat(newWholeLines);
+            lines = lines.concat(newWholeLines);
             var linesLength = lines.length;
             if (lines[linesLength-1] === 'go') {
                 if (player.timeoutId) {
                     clearTimeout(player.timeoutId);
                     player.timeoutId = undefined;
                 }
-		player.orders = lines;
+                player.orders = lines;
                 lines = [];
                 responseCallback(player);
             }
@@ -216,7 +216,7 @@ function doPlayerOrders(state, player) {
     var pid = player.id;
     var lines = player.orders;
     lines.forEach(function(v, i, a) {
-         state.log.write('player' + player.id + ' > engine: ' + v + '\n');
+        state.log.write('player' + player.id + ' > engine: ' + v + '\n');
     });
     lines = lines.slice(0, lines.length-1); // strip off 'go'
     lines.every(function(v, i, a) {
@@ -264,13 +264,13 @@ function doPlayerOrders(state, player) {
 
 function doOrders(state, players) {
     players.forEach(function(p, i, a) {
-	    if (p.isAlive()) {
-		var err = doPlayerOrders(state, p);
-		if (err) {
-                    p.kill('badOrder');
-		}
-	    }
-	});
+        if (p.isAlive()) {
+            var err = doPlayerOrders(state, p);
+            if (err) {
+                p.kill('badOrder');
+            }
+        }
+    });
 }
 
 function doAdvancement(state) {
@@ -300,7 +300,8 @@ function battle(forces, oldOwner) {
 
 function doArrival(state) {
     var newFleets = [];
-    var forces = []; // Planet : [neutral fleet total, p1 fleet total, p2 fleet total]
+    var forces = []; // Planet : [neutral fleet total, p1 fleet total, p2
+                        // fleet total]
     var battleIndexes = [];
     state.fleets.forEach(function(v, i, a) {
         if (v.remaining > 0) {
@@ -320,7 +321,7 @@ function doArrival(state) {
     battleIndexes.forEach(function(i, ai, a) {
         var v = forces[i];
         var planet = state.planets[i];
-	v[planet.owner] += planet.ships;
+        v[planet.owner] += planet.ships;
         var result = battle(v, planet.owner);
         planet.owner = result[0];
         planet.ships = result[1];
@@ -330,35 +331,35 @@ function doArrival(state) {
 function countShips(state) {
     var ships = [0, 0, 0];
     state.planets.forEach(function(v, i, a) {
-            ships[v.owner] += v.ships;
-        });
+        ships[v.owner] += v.ships;
+    });
     state.fleets.forEach(function(v, i, a) {
-            ships[v.owner] += v.ships;
-        });
+        ships[v.owner] += v.ships;
+    });
     return ships;
 }
 
 function doEndgame(state, players) {
     players.forEach(function(v,i,a) {
-            v.end();
+        v.end();
     });
     var p1Alive = players[0].isAlive();
     var p2Alive = players[1].isAlive();
     if (! p1Alive && ! p2Alive) {
-        error("Draw");
+        error("Draw!");
     } else if (p1Alive && ! p2Alive) {
-        error("Player 1 wins");
+        error("Player 1 Wins!");
     } else if (p2Alive && ! p1Alive) {
-        error("Player 2 wins");
+        error("Player 2 Wins!");
     } else {
-	var ships = countShips(state);
+        var ships = countShips(state);
         debugi(ships);
         if (ships[1] > ships[2]) {
-            error("Player 1 wins");
+            error("Player 1 Wins!");
         } else if (ships[1] == ships[2]) {
-            error("Draw");
+            error("Draw!");
         } else {
-            error("Player 2 wins");
+            error("Player 2 Wins!");
         }
     }
     sys.print('\n');
@@ -368,11 +369,11 @@ function doEndgame(state, players) {
 function printStartingGameState(state) {
     var s = '';
     state.planets.forEach(function(v,i,a) {
-	    if (i > 0) {
-		s += ':';
-	    }
-	    s += numberToJavaString(v.x) + ',' + numberToJavaString(v.y) + ',' + v.owner + ',' + v.ships + ',' + v.growth;
-	});
+        if (i > 0) {
+            s += ':';
+        }
+        s += numberToJavaString(v.x) + ',' + numberToJavaString(v.y) + ',' + v.owner + ',' + v.ships + ',' + v.growth;
+    });
     s += '|';
     sys.print(s);
 }
@@ -380,15 +381,15 @@ function printStartingGameState(state) {
 function printCurrentGameState(state) {
     var s = '';
     state.planets.forEach(function(v,i,a) {
-            if (i > 0) {
-                s += ',';
-            }
-            s += v.owner + '.' + v.ships;
-        });
+        if (i > 0) {
+            s += ',';
+        }
+        s += v.owner + '.' + v.ships;
+    });
     state.fleets.forEach(function(v,i,a) {
-	    s += ',';
-	    s += v.owner + '.' + v.ships + '.' + v.source + '.' + v.dest + '.' + v.totalLength + '.' + v.remaining;
-	});
+        s += ',';
+        s += v.owner + '.' + v.ships + '.' + v.source + '.' + v.dest + '.' + v.totalLength + '.' + v.remaining;
+    });
     s += ':';
     sys.print(s);
 }
@@ -403,13 +404,13 @@ function startGame(rawArgs){
         return startPlayer(state, index + 1, val, function(p) {
             state.playersWhoHaveGivenOrders += 1;
             if (state.playersWhoHaveGivenOrders >= 2) {
-		doOrders(state, players);
+                doOrders(state, players);
                 doAdvancement(state);
                 doArrival(state);
-		printCurrentGameState(state);
-		var shipCount = countShips(state);
-		var bothPlayersAlive = players[0].isAlive() && players[1].isAlive() &&
-                    shipCount[1] > 0 && shipCount[2] > 0;
+                printCurrentGameState(state);
+                var shipCount = countShips(state);
+                var bothPlayersAlive = players[0].isAlive() && players[1].isAlive() &&
+                shipCount[1] > 0 && shipCount[2] > 0;
                 state.turn += 1;
                 state.playersWhoHaveGivenOrders = 0;
                 if (state.turn <= args.maxTurns && bothPlayersAlive) {
