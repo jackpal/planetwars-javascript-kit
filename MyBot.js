@@ -11,9 +11,9 @@
 // http://www.ai-contest.com/resources.
 */
 
-var PlanetWars = require('./PlanetWars');
+var planetWars = require('./PlanetWars');
 
-function DoTurn(pw) {
+function doTurn(pw) {
     // (1) If we currently have a fleet in flight, just do nothing.
     if ( pw.myFleets.length >= 1 ) {
         return;
@@ -57,9 +57,9 @@ function DoTurn(pw) {
     // planet that I do not own.
     if ( source >= 0 && dest >= 0 ) {
         numShips = Math.floor(sourceShips / 2);
-        pw.IssueOrder(source, dest, numShips);
+        pw.issueOrder(source, dest, numShips);
     }
 }
 
 // Play the game with my bot
-PlanetWars.Play(DoTurn);
+planetWars.play(doTurn);

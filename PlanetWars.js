@@ -62,7 +62,7 @@ function Universe(planets, fleets) {
         myFleets : myFleets,
         enemyFleets : enemyFleets,
 
-        IssueOrder : function IssueOrder(source, dest, ships) {
+        issueOrder : function issueOrder(source, dest, ships) {
             process.stdout.write('' + Math.floor(source) + ' ' +
                     Math.floor(dest) + ' ' + Math.floor(ships) + '\n');
         }
@@ -106,7 +106,7 @@ function parseInput(turnInput, turnFn) {
     process.stdout.write('go\n');
 }
 
-exports.Play = function Play(turnFn) {
+exports.play = function play(turnFn) {
     var stdin = process.openStdin();
     var buffer = '';
     sys.debug('Play()');
@@ -125,3 +125,10 @@ exports.Play = function Play(turnFn) {
         sys.exit();
     });
 };
+
+exports.distance = function distance(a, b) {
+    var dx = a.x - b.x;
+    var dy = a.y - b.y;
+    return Math.ceil(Math.sqrt(dx*dx+dy*dy));
+};
+
